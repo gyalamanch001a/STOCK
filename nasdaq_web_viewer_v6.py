@@ -58,25 +58,18 @@ TEMPLATE = '''
         .search-box { width: 90%; margin: 10px; padding: 8px; font-size: 1em; }
         .search-form { text-align: center; }
 
-        /* Day trading panel */
-        #daytrading-panel {
-            position: fixed;
-            top: 16px;
-            right: 24px;
+        /* Day trading card embedded above the OHLC button */
+        .dt-card {
             background: var(--panel-bg);
             color: var(--panel-fg);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 14px 14px 8px 14px;
-            min-width: 420px;
-            max-width: 520px;
-            max-height: 70vh;
-            overflow: auto;
-            z-index: 1001;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            margin-bottom: 16px;
         }
-        #daytrading-panel h3 { margin: 0 0 8px 0; color: var(--panel-accent); }
-        #dt-controls { display:flex; gap:8px; align-items:center; margin-bottom: 8px; }
+        .dt-card h3 { margin: 0 0 8px 0; color: var(--panel-accent); }
+        #dt-controls { display:flex; gap:8px; align-items:center; margin: 6px 0 8px 0; }
         #dt-controls button { background: var(--panel-accent); color:#222; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
         #dt-controls .muted { color: var(--muted); font-size: 0.9em; }
         #dt-controls label { display:flex; align-items:center; gap:6px; color: var(--muted); font-size:0.9em; }
@@ -102,7 +95,8 @@ TEMPLATE = '''
         }
 
         function setLoading(isLoading) {
-            document.getElementById('dt-spinner').style.display = isLoading ? 'inline-block' : 'none';
+            const el = document.getElementById('dt-spinner');
+            if (el) el.style.display = isLoading ? 'inline-block' : 'none';
         }
 
         function formatTime(epoch) {
@@ -153,18 +147,19 @@ TEMPLATE = '''
         }
 
         function renderDaytrading(data) {
-            const panel = document.getElementById('daytrading-panel');
             const info = document.getElementById('dt-info');
             const cont = document.getElementById('dt-content');
             const ts = data.updated_at ? `Updated: <span class="pill">${formatTime(data.updated_at)}</span>` : '';
-            info.innerHTML = `${ts} <span class="pill">Rows: ${data.table ? data.table.length : 0}</span>`;
-            if (data.table && data.table.length > 0) {
-                cont.innerHTML = buildTable(data.columns || [], data.table || []);
-            } else {
-                cont.innerHTML = '<p class="muted">No recommendations found.</p>';
+            if (info) info.innerHTML = `${ts} <span class="pill">Rows: ${data.table ? data.table.length : 0}</span>`;
+            if (cont) {
+                if (data.table && data.table.length > 0) {
+                    cont.innerHTML = buildTable(data.columns || [], data.table || []);
+                } else {
+                    cont.innerHTML = '<p class="muted">No recommendations found.</p>';
+                }
             }
             const summary = document.getElementById('dt-summary');
-            summary.innerHTML = data.summary ? `<div class="summary"><strong>Summary:</strong><br>${data.summary}</div>` : '';
+            if (summary) summary.innerHTML = data.summary ? `<div class="summary"><strong>Summary:</strong><br>${data.summary}</div>` : '';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -188,6 +183,20 @@ TEMPLATE = '''
         <div class="details">
             {% if details %}
                 <div style="margin-top:60px;">
+                    <!-- Day Trading Assistant card shown above the OHLC button -->
+                    <div id="daytrading-card" class="dt-card">
+                        <h3>Day Trading Assistant</h3>
+                        <div id="dt-controls">
+                            <button onclick="runDayTradingAssistant()">Run</button>
+                            <button onclick="fetchDaytradingData()">Refresh</button>
+                            <div class="spinner" id="dt-spinner"></div>
+                            <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
+                            <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
+                        </div>
+                        <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
+                        <div id="dt-content"></div>
+                        <div id="dt-summary"></div>
+                    </div>
                     <form method="post" action="/fetch_ohlc">
                         <input type="hidden" name="symbol" value="{{ selected }}" />
                         <button type="submit">Fetch OHLC from Yahoo Finance</button>
@@ -215,20 +224,7 @@ TEMPLATE = '''
         </div>
     </div>
 
-    <!-- Day Trading Assistant Panel (always visible at top-right) -->
-    <div id="daytrading-panel">
-        <h3>Day Trading Assistant</h3>
-        <div id="dt-controls">
-            <button onclick="runDayTradingAssistant()">Run</button>
-            <button onclick="fetchDaytradingData()">Refresh</button>
-            <div class="spinner" id="dt-spinner"></div>
-            <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
-            <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
-        </div>
-        <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
-        <div id="dt-content"></div>
-        <div id="dt-summary"></div>
-    </div>
+    <!-- Note: Day Trading card is embedded within the details section above -->
 </body>
 </html>
 '''
