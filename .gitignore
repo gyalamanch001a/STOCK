@@ -1,0 +1,40 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+
+# Logs and runtime artifacts
+*.log
+*.tmp
+*.pid
+
+# Data files
+*.db
+*.sqlite
+*.sqlite3
+*.pkl
+*.pickle
+*.cache/
+*.csv
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Audio/media artifacts
+*.wav
+*.mp3
+*.flac
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Local settings
+*.local
