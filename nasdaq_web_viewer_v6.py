@@ -73,7 +73,7 @@ TEMPLATE = '''
         #dt-controls button { background: var(--panel-accent); color:#222; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
         #dt-controls .muted { color: var(--muted); font-size: 0.9em; }
         #dt-controls label { display:flex; align-items:center; gap:6px; color: var(--muted); font-size:0.9em; }
-        #dt-table { width:100%; border-collapse: collapse; font-size: 0.9em; }
+    #dt-table { width:100%; border-collapse: collapse; font-size: 0.9em; }
         #dt-table th, #dt-table td { border: 1px solid var(--border); padding: 6px; vertical-align: top; color:#f0f0f0; }
         #dt-table th { position: sticky; top:0; background:#2a2a2a; z-index:1; }
         #dt-table tr:nth-child(even) { background:#242424; }
@@ -116,11 +116,12 @@ TEMPLATE = '''
             } finally { setLoading(false); }
         }
 
-        async function runDayTradingAssistant() {
+    async function runDayTradingAssistant() {
             setLoading(true);
             try {
-                const r = await fetch('/run_daytrading_assistant');
-                // Summary intentionally omitted from UI
+        const r = await fetch('/run_daytrading_assistant');
+        const data = await r.json();
+        renderDaytrading(data);
             } catch (e) {
                 renderDaytrading({table:[], columns:[], summary:'Error running assistant: ' + e, updated_at:null});
             } finally { setLoading(false); }
@@ -159,6 +160,18 @@ TEMPLATE = '''
             }
             const summary = document.getElementById('dt-summary');
             if (summary) summary.innerHTML = data.summary ? `<div class="summary"><strong>Summary:</strong><br>${data.summary}</div>` : '';
+            updateSummaryVisibility();
+        }
+
+        function updateSummaryVisibility() {
+            const toggle = document.getElementById('dt-summary-toggle');
+            const sumEl = document.getElementById('dt-summary');
+            if (!sumEl) return;
+            if (toggle && toggle.checked) {
+                sumEl.style.display = '';
+            } else {
+                sumEl.style.display = 'none';
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -181,7 +194,7 @@ TEMPLATE = '''
         </div>
         <div class="details">
             <div style="margin-top:20px;">
-                <!-- Day Trading Assistant card shown always, summary omitted -->
+                <!-- Day Trading Assistant card shown always; summary can be toggled -->
                 <div id="daytrading-card" class="dt-card">
                     <h3>Day Trading Assistant</h3>
                     <div id="dt-controls">
@@ -189,10 +202,12 @@ TEMPLATE = '''
                         <button onclick="fetchDaytradingData()">Refresh</button>
                         <div class="spinner" id="dt-spinner"></div>
                         <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
+                        <label style="margin-left:8px;"><input id="dt-summary-toggle" type="checkbox" onchange="updateSummaryVisibility()"> Show summary</label>
                         <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
                     </div>
                     <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
                     <div id="dt-content"></div>
+                    <div id="dt-summary"></div>
                 </div>
             </div>
             {% if details %}
