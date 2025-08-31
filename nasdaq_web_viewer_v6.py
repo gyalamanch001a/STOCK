@@ -120,8 +120,7 @@ TEMPLATE = '''
             setLoading(true);
             try {
                 const r = await fetch('/run_daytrading_assistant');
-                const data = await r.json();
-                renderDaytrading(data);
+                // Summary intentionally omitted from UI
             } catch (e) {
                 renderDaytrading({table:[], columns:[], summary:'Error running assistant: ' + e, updated_at:null});
             } finally { setLoading(false); }
@@ -181,27 +180,28 @@ TEMPLATE = '''
             {% endfor %}
         </div>
         <div class="details">
-            {% if details %}
-                <div style="margin-top:60px;">
-                    <!-- Day Trading Assistant card shown above the OHLC button -->
-                    <div id="daytrading-card" class="dt-card">
-                        <h3>Day Trading Assistant</h3>
-                        <div id="dt-controls">
-                            <button onclick="runDayTradingAssistant()">Run</button>
-                            <button onclick="fetchDaytradingData()">Refresh</button>
-                            <div class="spinner" id="dt-spinner"></div>
-                            <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
-                            <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
-                        </div>
-                        <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
-                        <div id="dt-content"></div>
-                        <div id="dt-summary"></div>
+            <div style="margin-top:20px;">
+                <!-- Day Trading Assistant card shown always, summary omitted -->
+                <div id="daytrading-card" class="dt-card">
+                    <h3>Day Trading Assistant</h3>
+                    <div id="dt-controls">
+                        <button onclick="runDayTradingAssistant()">Run</button>
+                        <button onclick="fetchDaytradingData()">Refresh</button>
+                        <div class="spinner" id="dt-spinner"></div>
+                        <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
+                        <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
                     </div>
+                    <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
+                    <div id="dt-content"></div>
+                </div>
+            </div>
+            {% if details %}
+                <div style="margin-top:20px;">
                     <form method="post" action="/fetch_ohlc">
                         <input type="hidden" name="symbol" value="{{ selected }}" />
                         <button type="submit">Fetch OHLC from Yahoo Finance</button>
                     </form>
-                    <div style="margin-top:30px;">
+                    <div style="margin-top:20px;">
                         <table style="border-collapse:collapse; width:100%;">
                             <tr style="background:#e8e8e8;"><th colspan="4">All Details</th></tr>
                             {% set items = details.items()|list %}
