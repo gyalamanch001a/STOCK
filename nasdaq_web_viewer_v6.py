@@ -136,9 +136,11 @@ TEMPLATE = '''
         }
 
         function buildTable(columns, rows) {
-            // Select columns to display: primary first if present, then any remaining
-            const present = new Set(columns);
-            const displayCols = primaryCols.filter(c=>present.has(c)).concat(columns.filter(c=>!primaryCols.includes(c)));
+            // Select columns to display: hide certain columns, show primary first then remaining
+            const HIDDEN_COLS = new Set(['Summary']);
+            const visibleCols = (columns || []).filter(c => !HIDDEN_COLS.has(c));
+            const present = new Set(visibleCols);
+            const displayCols = primaryCols.filter(c=>present.has(c)).concat(visibleCols.filter(c=>!primaryCols.includes(c)));
             let thead = '<thead><tr>' + displayCols.map(c=>`<th>${c}</th>`).join('') + '</tr></thead>';
             let tbody = '<tbody>' + rows.map(r=>{
                 return '<tr>' + displayCols.map(c=>`<td class="wrap">${(r[c] ?? '').toString().replace(/</g,'&lt;')}</td>`).join('') + '</tr>';
@@ -146,7 +148,7 @@ TEMPLATE = '''
             return '<table id="dt-table">' + thead + tbody + '</table>';
         }
 
-        function renderDaytrading(data) {
+    function renderDaytrading(data) {
             const info = document.getElementById('dt-info');
             const cont = document.getElementById('dt-content');
             const ts = data.updated_at ? `Updated: <span class="pill">${formatTime(data.updated_at)}</span>` : '';
@@ -157,20 +159,6 @@ TEMPLATE = '''
                 } else {
                     cont.innerHTML = '<p class="muted">No recommendations found.</p>';
                 }
-            }
-            const summary = document.getElementById('dt-summary');
-            if (summary) summary.innerHTML = data.summary ? `<div class="summary"><strong>Summary:</strong><br>${data.summary}</div>` : '';
-            updateSummaryVisibility();
-        }
-
-        function updateSummaryVisibility() {
-            const toggle = document.getElementById('dt-summary-toggle');
-            const sumEl = document.getElementById('dt-summary');
-            if (!sumEl) return;
-            if (toggle && toggle.checked) {
-                sumEl.style.display = '';
-            } else {
-                sumEl.style.display = 'none';
             }
         }
 
@@ -194,7 +182,7 @@ TEMPLATE = '''
         </div>
         <div class="details">
             <div style="margin-top:20px;">
-                <!-- Day Trading Assistant card shown always; summary can be toggled -->
+                <!-- Day Trading Assistant card shown always; summary removed -->
                 <div id="daytrading-card" class="dt-card">
                     <h3>Day Trading Assistant</h3>
                     <div id="dt-controls">
@@ -202,12 +190,10 @@ TEMPLATE = '''
                         <button onclick="fetchDaytradingData()">Refresh</button>
                         <div class="spinner" id="dt-spinner"></div>
                         <label><input type="checkbox" onchange="toggleAutoRefresh(this)"> Auto-refresh</label>
-                        <label style="margin-left:8px;"><input id="dt-summary-toggle" type="checkbox" onchange="updateSummaryVisibility()"> Show summary</label>
                         <a href="/download_daytrading_csv" style="color:var(--panel-accent);text-decoration:none; margin-left:auto;">Download CSV</a>
                     </div>
                     <div id="dt-info" class="muted" style="margin-bottom:6px;"></div>
                     <div id="dt-content"></div>
-                    <div id="dt-summary"></div>
                 </div>
             </div>
             {% if details %}
